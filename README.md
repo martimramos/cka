@@ -7,94 +7,70 @@
 
 ---
 
-## 🚀 **Container Orchestration**
-Kubernetes' primary role is to dynamically manage containers across multiple hosts, ensuring efficient resource utilization and application deployment.
-
-## 🔄 **Application Reliability**
-Kubernetes simplifies the creation of **reliable, self-healing, and scalable** applications by managing replicas, health checks, and rolling updates.
-
-## ⚙️ **Automation**
-Kubernetes provides **declarative configuration and automation**, making it easier to manage containerized applications with features like:
-- **Auto-scaling** (HPA, VPA)
-- **Rolling updates & rollbacks**
-- **Self-healing pods**
-- **Declarative state management (YAML)**
+## 🚀 Container Orchestration
+| Feature                     | Description |
+|-----------------------------|------------|
+| **Multi-host container management** | Kubernetes dynamically manages containers across multiple hosts. |
+| **Resource utilization** | Ensures efficient scheduling and resource use. |
+| **Automated scaling** | Scales applications up or down based on demand. |
 
 ---
 
-## 🏗️ **Kubernetes Control Plane**
-The **Control Plane** is responsible for managing the cluster and ensuring desired state enforcement. It includes:
-- **kube-apiserver** – Central communication hub for all Kubernetes components.
-- **etcd** – Distributed key-value store for cluster state.
-- **kube-scheduler** – Assigns workloads (Pods) to Nodes.
-- **kube-controller-manager** – Handles controllers like replication, node lifecycle, and service accounts.
-- **cloud-controller-manager** – Manages cloud provider integrations.
+## 🔄 Application Reliability
+| Feature                     | Description |
+|-----------------------------|------------|
+| **Self-healing** | Restarts failed containers, replaces nodes, and auto-replicates. |
+| **Rolling updates** | Ensures zero downtime during application updates. |
+| **Load balancing** | Distributes traffic efficiently across pods. |
 
-```mermaid
-graph TD;
-    subgraph "Control Plane"
-        KubeAPIServer["kube-api-server"]
-        Etcd["Etcd"]
-        KubeControllerManager["kube-controller-manager"]
-        KubeScheduler["kube-scheduler"]
-        CloudControllerManager["cloud-controller-manager"]
+---
 
-        KubeAPIServer -->|Stores state| Etcd
-        KubeControllerManager -->|Communicates with| KubeAPIServer
-        KubeScheduler -->|Communicates with| KubeAPIServer
-        CloudControllerManager -->|Communicates with| KubeAPIServer
-    end
+## ⚙️ Automation
+| Feature                     | Description |
+|-----------------------------|------------|
+| **Auto-scaling** | Horizontal (HPA) & Vertical (VPA) pod scaling. |
+| **Rolling updates & rollbacks** | Seamlessly update applications without downtime. |
+| **State management** | Declarative infrastructure using YAML manifests. |
 
-    subgraph "Nodes"
-        subgraph "Node 1"
-            KubeProxy1["kube-proxy"]
-            Kubelet1["kubelet"]
-            ContainerRuntime1["container runtime"]
-            Container1["container"]
-            Container2["container"]
-            Container3["container"]
-            Container4["container"]
-            KubeProxy1 --> Kubelet1
-            Kubelet1 --> ContainerRuntime1
-            ContainerRuntime1 --> Container1
-            ContainerRuntime1 --> Container2
-            ContainerRuntime1 --> Container3
-            ContainerRuntime1 --> Container4
-        end
+---
 
-        subgraph "Node 2"
-            KubeProxy2["kube-proxy"]
-            Kubelet2["kubelet"]
-            ContainerRuntime2["container runtime"]
-            Container5["container"]
-            Container6["container"]
-            Container7["container"]
-            Container8["container"]
-            KubeProxy2 --> Kubelet2
-            Kubelet2 --> ContainerRuntime2
-            ContainerRuntime2 --> Container5
-            ContainerRuntime2 --> Container6
-            ContainerRuntime2 --> Container7
-            ContainerRuntime2 --> Container8
-        end
+## 🏗️ Kubernetes Control Plane
+The **Control Plane** manages the cluster and ensures the desired state.
 
-        subgraph "Node 3"
-            KubeProxy3["kube-proxy"]
-            Kubelet3["kubelet"]
-            ContainerRuntime3["container runtime"]
-            Container9["container"]
-            Container10["container"]
-            Container11["container"]
-            Container12["container"]
-            KubeProxy3 --> Kubelet3
-            Kubelet3 --> ContainerRuntime3
-            ContainerRuntime3 --> Container9
-            ContainerRuntime3 --> Container10
-            ContainerRuntime3 --> Container11
-            ContainerRuntime3 --> Container12
-        end
-    end
+| Component                 | Description |
+|---------------------------|------------|
+| **kube-apiserver**        | Central API gateway for communication. |
+| **etcd**                  | Distributed key-value store for cluster state. |
+| **kube-scheduler**        | Assigns workloads (Pods) to Nodes. |
+| **kube-controller-manager** | Manages controllers (node lifecycle, replication, etc.). |
+| **cloud-controller-manager** | Integrates Kubernetes with cloud providers. |
 
-    KubeAPIServer -->|Manages nodes| KubeProxy1
-    KubeAPIServer -->|Manages nodes| KubeProxy2
-    KubeAPIServer -->|Manages nodes| KubeProxy3
+---
+
+## 🖥️ Kubernetes Node Components
+Each **Node** runs application workloads.
+
+| Component          | Description |
+|--------------------|------------|
+| **kubelet**       | Agent that runs on each node to manage pods. |
+| **kube-proxy**    | Manages networking for pod communication. |
+| **Container runtime** | Runs the actual containers (Docker, containerd, CRI-O). |
+
+---
+
+## 📌 Additional Key Concepts
+
+| Concept               | Description |
+|-----------------------|------------|
+| **Pod**              | The smallest deployable unit in Kubernetes. |
+| **Deployment**       | Ensures the desired number of pod replicas are running. |
+| **Service**         | Exposes applications inside or outside the cluster. |
+| **ConfigMap & Secret** | Stores configuration and sensitive data. |
+| **PersistentVolume (PV)** | Manages storage for stateful applications. |
+
+---
+
+This version **removes Mermaid diagrams** and instead **uses Markdown tables** for structured information. ✅  
+It’s now **fully compatible** with GitHub, GitLab, VS Code, and Markdown preview tools. 🚀
+
+Would you like me to **add YAML command examples** or keep it simple?
