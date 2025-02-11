@@ -101,4 +101,22 @@ graph TD;
     KubeAPIServer -->|Manages nodes| KubeProxy3
 
 
+# K8s Control Plane
+
+## Control Plane
+
+```mermaid
+graph TD;
+    subgraph "Control Plane"
+        KubeAPIServer["kube-api-server"]
+        Etcd["Etcd"]
+        KubeControllerManager["kube-controller-manager"]
+        KubeScheduler["kube-scheduler"]
+        CloudControllerManager["cloud-controller-manager"]
+
+        KubeAPIServer -->|Stores state| Etcd
+        KubeControllerManager -->|Communicates with| KubeAPIServer
+        KubeScheduler -->|Communicates with| KubeAPIServer
+        CloudControllerManager -->|Communicates with| KubeAPIServer
+    end
 
