@@ -87,3 +87,315 @@
 | **Expose a deployment**     | `kubectl expose deployment <name> --type=LoadBalancer --port=80` |
 
 ---
+
+Building a Kubernetes Cluster
+
+Control plane server do:
+
+edit hosts file:
+put this in all your nodes (in this example 3 nodes)
+
+## 🔧 Building a Kubernetes Cluster
+
+### Step 1: Configure the Hosts File
+Before initializing the cluster, ensure all nodes can resolve each other’s names by editing the `/etc/hosts` file.
+
+On **all nodes** (Control Plane + Workers), add the following:
+
+```sh
+sudo vim /etc/hosts
+```
+
+```sh
+172.31.98.59   k8s-control
+172.31.99.1    k8s-worker1
+172.31.100.216 k8s-worker2
+```
+
+
+## Step 2: Set Hostnames on All Nodes
+
+Each node needs a unique hostname. Run the following command on each respective node:
+
+### 🖥️ Control Plane Node
+```sh
+sudo hostnamectl set-hostname k8s-control
+```
+
+```sh
+sudo hostnamectl set-hostname k8s-worker1
+```
+
+```sh
+sudo hostnamectl set-hostname k8s-worker2
+```
+
+Log out / in
+
+## Step 3: Load Kernel Modules and Configure Networking
+
+Before installing Kubernetes, ensure that the necessary **kernel modules** and **networking settings** are configured.
+
+### 🛠️ Load Required Kernel Modules
+Run the following commands to load the required kernel modules:
+
+```sh
+cat <<EOF | sudo tee /etc/modules-load.d/containerd.conf
+overlay
+br_netfilter
+EOF
+```
+
+Now load the modules into the system:
+
+```sh
+sudo modprobe overlay
+sudo modprobe br_netfilter
+```
+
+---
+
+### ⚙️ Configure Networking Settings
+Enable **bridge network traffic forwarding** and **IP forwarding**:
+
+```sh
+cat <<EOF | sudo tee /etc/sysctl.d/99-kubernetes-cri.conf
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+EOF
+```
+
+Apply the changes:
+
+```sh
+sudo sysctl --system
+```
+
+---
+
+💪 **Why is this needed?**
+- **`overlay`** module is required for container overlay networks.
+- **`br_netfilter`** module allows traffic across pod networks.
+- **`sysctl` settings** ensure proper **packet forwarding** for Kubernetes networking.
+
+---
+
+## Step 4: Install Container Runtime
+Kubernetes requires a container runtime. Here, we install `containerd`:
+
+```sh
+sudo apt-get update && sudo apt-get install -y containerd
+```
+
+---
+
+💪 **Why is this needed?**
+- **`overlay`** module is required for container overlay networks.
+- **`br_netfilter`** module allows traffic across pod networks.
+- **`sysctl` settings** ensure proper **packet forwarding** for Kubernetes networking.
+- **`containerd`** is the recommended container runtime for Kubernetes.
+
+---
+
+############################################
+
+## Step 3: Load Kernel Modules and Configure Networking
+
+Before installing Kubernetes, ensure that the necessary **kernel modules** and **networking settings** are configured.
+
+### 🛠️ Load Required Kernel Modules
+Run the following commands to load the required kernel modules:
+
+```sh
+cat <<EOF | sudo tee /etc/modules-load.d/containerd.conf
+overlay
+br_netfilter
+EOF
+```
+
+Now load the modules into the system:
+
+```sh
+sudo modprobe overlay
+sudo modprobe br_netfilter
+```
+
+---
+
+### ⚙️ Configure Networking Settings
+Enable **bridge network traffic forwarding** and **IP forwarding**:
+
+```sh
+cat <<EOF | sudo tee /etc/sysctl.d/99-kubernetes-cri.conf
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+EOF
+```
+
+Apply the changes:
+
+```sh
+sudo sysctl --system
+```
+
+---
+
+## Step 5: Disable Swap and Install Dependencies
+
+### Disable Swap
+```sh
+sudo swapoff -a
+```
+
+### Install Required Packages
+```sh
+sudo apt-get update && sudo apt-get install -y apt-transport-https curl
+```
+
+---
+
+## Step 6: Add Kubernetes Repository and Install Packages
+
+### Add Kubernetes GPG Key
+```sh
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+```
+
+### Add Kubernetes Repo
+```sh
+cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
+deb https://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+```
+
+### Update package list
+```sh
+sudo apt-get update
+```
+
+### Install Kubernetes Components (kubelet, kubeadm, kubectl)
+```sh
+sudo apt-get install -y kubelet=1.27.0-00 kubeadm=1.27.0-00 kubectl=1.27.0-00
+```
+
+### Prevent automatic updates of Kubernetes components
+```sh
+sudo apt-mark hold kubelet kubeadm kubectl
+```
+
+---
+
+## Step 7: Repeat on Worker Nodes
+Perform **Steps 3 to 6** on each worker node (`k8s-worker1` and `k8s-worker2`) to ensure they are correctly configured before joining the cluster.
+
+---
+
+💪 **Why is this needed?**
+- **Kernel modules** allow necessary networking and container features.
+- **`containerd`** is the recommended container runtime for Kubernetes.
+- **Disabling swap** is required for stable cluster operations.
+- **Installing Kubernetes components** prepares nodes for joining the cluster.
+
+---
+
+## Step 8: Initialize the Kubernetes Cluster
+Run the following command on the **control plane node** to initialize the Kubernetes cluster:
+
+```sh
+sudo kubeadm init --pod-network-cidr 192.168.0.0/16 --kubernetes-version 1.27.0
+```
+
+## Step 9: Set Up kubectl for the Control Plane Node
+To start using the cluster, configure `kubectl` for the control plane user:
+
+```sh
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+```
+
+Verify the cluster is running:
+
+```sh
+kubectl get nodes
+```
+
+```sh
+kubectl get nodes
+```
+
+At this stage, the control plane node will show a **NotReady** status. This is because a network plugin is not yet installed.
+
+---
+
+## Step 9: Deploy the Network Plugin (Calico)
+A **CNI (Container Network Interface) plugin** is required for pod communication. We will use **Calico**:
+
+```sh
+kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+```
+
+### Why is this needed?
+- **Calico** provides networking and network policies for Kubernetes pods.
+- **Kubernetes does not handle networking by itself**, so a CNI plugin is required.
+- Applying this manifest **enables inter-pod communication**, allowing the cluster to function correctly.
+
+
+💪 **Why is this needed?**
+- **Kernel modules** allow necessary networking and container features.
+- **`containerd`** is the recommended container runtime for Kubernetes.
+- **Disabling swap** is required for stable cluster operations.
+- **Installing Kubernetes components** prepares nodes for joining the cluster.
+- **Initializing the cluster** sets up the control plane and allows nodes to communicate.
+- **Applying Calico** enables pod-to-pod networking, making the cluster functional.
+
+
+---
+
+## Step 10: Join Worker Nodes to the Cluster
+On the control plane, generate the join command:
+
+```sh
+kubeadm token create --print-join-command
+```
+
+This will output a command similar to:
+
+```sh
+kubeadm join 172.31.98.59:6443 --token <token> --discovery-token-ca-cert-hash sha256:<hash>
+```
+
+Run this command on **each worker node** (`k8s-worker1` and `k8s-worker2`):
+
+```sh
+sudo kubeadm join 172.31.98.59:6443 --token <token> --discovery-token-ca-cert-hash sha256:<hash>
+```
+
+This process will take a few moments as Kubernetes sets up the nodes.
+
+Check the status on the control plane:
+
+```sh
+kubectl get nodes
+```
+
+Initially, worker nodes may appear as **NotReady**. Wait for them to transition to **Ready**.
+
+```sh
+kubectl get nodes
+```
+
+Once all nodes are ready, the cluster is fully set up!
+
+---
+
+💪 **Why is this needed?**
+- **Worker nodes must join the control plane** to participate in the cluster.
+- **Calico networking must be fully applied** before nodes are marked as `Ready`.
+- **Verifying node status ensures a functional cluster**.
+
+---
+
+
