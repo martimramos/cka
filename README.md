@@ -1,9 +1,18 @@
 # CKA Cheat Sheet
 
-## Certified Kubernetes Administrator (CKA) - Cheat Sheet
+**Certified Kubernetes Administrator (CKA)**  
+📌 Master Kubernetes cluster management, troubleshooting, networking, and security.  
 
-**Certification:** [Certified Kubernetes Administrator (CKA)](https://training.linuxfoundation.org/certification/certified-kubernetes-administrator-cka/)  
-**Purpose:** Master Kubernetes cluster management, troubleshooting, networking, and security.
+---
+
+## 🔗 Quick Navigation
+- [🚀 Container Orchestration](#container-orchestration)
+- [🔄 Application Reliability](#application-reliability)
+- [⚙️ Automation](#automation)
+- [🏗️ Kubernetes Control Plane](#kubernetes-control-plane)
+- [🖥️ Node Components](#node-components)
+- [📌 Key Kubernetes Concepts](#key-kubernetes-concepts)
+- [🔧 Essential `kubectl` Commands](#essential-kubectl-commands)
 
 ---
 
@@ -35,42 +44,46 @@
 ---
 
 ## 🏗️ Kubernetes Control Plane
-The **Control Plane** manages the cluster and ensures the desired state.
-
-| Component                 | Description |
-|---------------------------|------------|
-| **kube-apiserver**        | Central API gateway for communication. |
-| **etcd**                  | Distributed key-value store for cluster state. |
-| **kube-scheduler**        | Assigns workloads (Pods) to Nodes. |
-| **kube-controller-manager** | Manages controllers (node lifecycle, replication, etc.). |
-| **cloud-controller-manager** | Integrates Kubernetes with cloud providers. |
+| Component                 | Role |
+|---------------------------|-----------------------------|
+| **kube-apiserver**        | API gateway for all interactions. |
+| **etcd**                  | Key-value store for cluster state. |
+| **kube-scheduler**        | Assigns workloads (Pods) to nodes. |
+| **kube-controller-manager** | Runs background controllers (e.g., node lifecycle). |
+| **cloud-controller-manager** | Handles cloud-specific integrations. |
 
 ---
 
-## 🖥️ Kubernetes Node Components
-Each **Node** runs application workloads.
-
-| Component          | Description |
-|--------------------|------------|
-| **kubelet**       | Agent that runs on each node to manage pods. |
-| **kube-proxy**    | Manages networking for pod communication. |
-| **Container runtime** | Runs the actual containers (Docker, containerd, CRI-O). |
+## 🖥️ Node Components
+| Component          | Role |
+|--------------------|-----------------------------|
+| **kubelet**       | Manages pod lifecycle on a node. |
+| **kube-proxy**    | Handles networking and enforces policies. |
+| **Container runtime** | Runs the containers (Docker, containerd, CRI-O). |
 
 ---
 
-## 📌 Additional Key Concepts
-
+## 📌 Key Kubernetes Concepts
 | Concept               | Description |
 |-----------------------|------------|
-| **Pod**              | The smallest deployable unit in Kubernetes. |
-| **Deployment**       | Ensures the desired number of pod replicas are running. |
-| **Service**         | Exposes applications inside or outside the cluster. |
-| **ConfigMap & Secret** | Stores configuration and sensitive data. |
+| **Pod**              | Smallest deployable unit, contains containers. |
+| **Deployment**       | Manages pod scaling, updates, and rollbacks. |
+| **Service**          | Exposes applications internally or externally. |
+| **ConfigMap & Secret** | Stores configuration and sensitive data securely. |
 | **PersistentVolume (PV)** | Manages storage for stateful applications. |
 
 ---
 
-This version **removes Mermaid diagrams** and instead **uses Markdown tables** for structured information. ✅  
-It’s now **fully compatible** with GitHub, GitLab, VS Code, and Markdown preview tools. 🚀
+## 🔧 Essential `kubectl` Commands
+| Task                        | Command |
+|-----------------------------|--------------------------------|
+| **List nodes**              | `kubectl get nodes` |
+| **View running pods**       | `kubectl get pods -A` |
+| **Describe a pod**          | `kubectl describe pod <pod-name>` |
+| **Apply a manifest**        | `kubectl apply -f <file>.yaml` |
+| **Delete a resource**       | `kubectl delete <resource> <name>` |
+| **View logs of a pod**      | `kubectl logs <pod-name>` |
+| **Execute command in a pod** | `kubectl exec -it <pod-name> -- /bin/sh` |
+| **Expose a deployment**     | `kubectl expose deployment <name> --type=LoadBalancer --port=80` |
 
-Would you like me to **add YAML command examples** or keep it simple?
+---
