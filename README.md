@@ -98,7 +98,7 @@ graph TD;
 
     KubeAPIServer -->|Manages nodes| KubeProxy1
     KubeAPIServer -->|Manages nodes| KubeProxy2
-    KubeAPIServer -->|Manages nodes| KubeProxy3
+    KubeAPIServer -->|Manages nodes| KubeProxy3  
 
 ## K8s Control Plane
 
