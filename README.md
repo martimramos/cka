@@ -172,6 +172,8 @@ Apply the changes:
 sudo sysctl --system
 ```
 
+sudo mkdir /etc/dontainerd
+
 ---
 
 💪 **Why is this needed?**
@@ -260,14 +262,12 @@ sudo apt-get update && sudo apt-get install -y apt-transport-https curl
 
 ### Add Kubernetes GPG Key
 ```sh
-curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 ```
 
 ### Add Kubernetes Repo
 ```sh
-cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
-deb https://apt.kubernetes.io/ kubernetes-xenial main
-EOF
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
 ```
 
 ### Update package list
@@ -277,7 +277,7 @@ sudo apt-get update
 
 ### Install Kubernetes Components (kubelet, kubeadm, kubectl)
 ```sh
-sudo apt-get install -y kubelet=1.27.0-00 kubeadm=1.27.0-00 kubectl=1.27.0-00
+sudo apt install -y kubeadm=1.28.1-1.1 kubelet=1.28.1-1.1 kubectl=1.28.1-1.1
 ```
 
 ### Prevent automatic updates of Kubernetes components
