@@ -398,4 +398,77 @@ Once all nodes are ready, the cluster is fully set up!
 
 ---
 
+# Using Namespaces in Kubernetes
+
+## What is a Namespace?
+A **namespace** in Kubernetes is a logical partition within a cluster that provides a scope for resources. Namespaces help organize and manage resources efficiently, particularly in multi-tenant environments.
+
+Namespaces allow users to:
+- Isolate resources between teams, projects, or environments.
+- Apply resource quotas and policies at a namespace level.
+- Manage access control via Role-Based Access Control (RBAC).
+
+## When to Use Namespaces?
+Namespaces are useful when:
+- You have multiple teams or applications sharing a cluster.
+- You need to enforce resource limits or security policies.
+- You want logical separation for development, testing, and production environments.
+
+Namespaces are **not needed** when you have a small setup with few resources, as everything operates in the default namespace.
+
+---
+
+## Working with Namespaces
+
+### List All Namespaces
+```sh
+kubectl get namespaces
+```
+
+### List Pods in a Specific Namespace
+```sh
+kubectl get pods --namespace your_namespace
+```
+
+### List Pods Across All Namespaces
+```sh
+kubectl get pods --all-namespaces
+```
+
+### Create a Namespace
+```sh
+kubectl create namespace your_namespace
+```
+
+Alternatively, using YAML:
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: your_namespace
+```
+Apply it using:
+```sh
+kubectl apply -f namespace.yaml
+```
+
+### Set a Default Namespace for Kubectl Commands
+To avoid specifying `--namespace` in every command:
+```sh
+kubectl config set-context --current --namespace=your_namespace
+```
+
+### Delete a Namespace
+```sh
+kubectl delete namespace your_namespace
+```
+⚠️ **Note:** Deleting a namespace will remove all resources within it.
+
+### Get Detailed Information About a Namespace
+```sh
+kubectl describe namespace your_namespace
+```
+
+## Conclusion
+Namespaces are an essential Kubernetes feature for organizing resources efficiently. By leveraging namespaces, teams can manage workloads more effectively and apply security and resource policies with ease.
 
