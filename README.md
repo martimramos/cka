@@ -779,10 +779,16 @@ Use the `etcdctl` CLI tool to create a snapshot of `etcd` data.
 ### Backup Command:
 ```sh
 ETCDCTL_API=3 etcdctl snapshot save /path/to/backup.db \
-  --endpoints=https://127.0.0.1:2379 \
+  --endpoints=https://10.0.1.101:2379 \
   --cacert=/etc/kubernetes/pki/etcd/ca.crt \
   --cert=/etc/kubernetes/pki/etcd/server.crt \
   --key=/etc/kubernetes/pki/etcd/server.key
+```
+
+### Reset etcd by removing all existing etcd data:
+```sh
+sudo systemctl stop etcd
+sudo rm -rf /var/lib/etcd
 ```
 
 ### Explanation:
@@ -797,10 +803,16 @@ Restoring `etcd` from a backup requires creating a **new etcd cluster instance**
 
 ### Restore Command:
 ```sh
-ETCDCTL_API=3 etcdctl snapshot restore /path/to/backup.db \
-  --data-dir /var/lib/etcd-new
+sudo ETCDCTL_API=3 etcdctl snapshot restore /path/to/backup.db
+  --initial-cluster etcd-restore=https://10.0.1.101:2380 \
+  --initial-advertise-peer-urls https://10.0.1.101:2380 \
+  --name etcd-restore \
+  --data-dir /var/lib/etcd
 ```
-
+```sh
+sudo chown -R etcd:etcd /var/lib/etcd
+sudo systemctl start etcd
+```
 ### Additional Steps:
 1. **Update etcd configuration** to point to the new `data-dir`.
 2. **Restart etcd** to apply the restored data.
