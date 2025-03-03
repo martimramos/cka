@@ -472,3 +472,119 @@ kubectl describe namespace your_namespace
 ## Conclusion
 Namespaces are an essential Kubernetes feature for organizing resources efficiently. By leveraging namespaces, teams can manage workloads more effectively and apply security and resource policies with ease.
 
+# High Availability in Kubernetes (K8s)
+
+## Introduction
+High Availability (HA) in Kubernetes ensures that both applications and the cluster itself remain operational even in the event of failures. By designing for HA, organizations can minimize downtime and maintain service reliability.
+
+To achieve high availability, Kubernetes clusters typically use multiple control plane nodes, load balancing, and redundancy mechanisms.
+
+---
+
+## High Availability Control Plane
+
+### Why Multiple Control Planes?
+Kubernetes relies on the **control plane** to manage cluster operations. If the control plane goes down, workloads may still run, but new workloads cannot be scheduled. A highly available Kubernetes cluster requires multiple control plane nodes to avoid single points of failure.
+
+### Architecture
+- Multiple **control plane nodes** running `kube-api-server`.
+- A **load balancer** to distribute requests to different control plane nodes.
+- Worker nodes communicate with the control plane through the load balancer.
+
+#### Example Architecture:
+```
++-------------------------+      +-------------------------+
+|  Control Plane Node 1   |      |  Control Plane Node 2   |
+|  --------------------   |      |  --------------------   |
+|  kube-api-server        |      |  kube-api-server        |
++-------------------------+      +-------------------------+
+        \                          /
+         \                        /
+        +----------------------+
+        |    Load Balancer     |
+        +----------------------+
+                |
+        +------------------+
+        |    Worker Node   |
+        |    kubelet       |
+        +------------------+
+```
+### Key Benefits:
+- Ensures **API server availability** through redundancy.
+- Allows **failover** between control plane nodes.
+- Enables **scalability** by distributing workloads across multiple nodes.
+
+---
+
+## etcd Configuration for HA
+`etcd` is a key component of Kubernetes, acting as the cluster's backing store. There are two main deployment models for `etcd` in an HA setup:
+
+### 1. **Stacked etcd**
+- Each control plane node runs its own `etcd` instance.
+- The `etcd` cluster is formed by all control plane nodes.
+- Easier to deploy, but failure of multiple nodes can cause data loss.
+
+#### Example:
+```
++-------------------------+      +-------------------------+
+|  Control Plane Node 1   |      |  Control Plane Node 2   |
+|  --------------------   |      |  --------------------   |
+|  kube-api-server        |      |  kube-api-server        |
+|  etcd                   |      |  etcd                   |
++-------------------------+      +-------------------------+
+        |                              |
+        +------------+----------------+
+                     |
+                  etcd cluster
+```
+
+### 2. **External etcd**
+- `etcd` runs on dedicated nodes outside of the control plane.
+- This provides better failure tolerance and scalability.
+- More complex to set up but recommended for production-grade clusters.
+
+#### Example:
+```
++-------------------------+      +-------------------------+
+|  Control Plane Node 1   |      |  Control Plane Node 2   |
+|  --------------------   |      |  --------------------   |
+|  kube-api-server        |      |  kube-api-server        |
++-------------------------+      +-------------------------+
+        \                          /
+         \                        /
+        +----------------------+
+        |   External etcd      |
+        +----------------------+
+```
+
+---
+
+## Key Components of HA in Kubernetes
+
+### 1. **Load Balancer**
+- Distributes traffic among control plane nodes.
+- Can be an external load balancer (e.g., HAProxy, Nginx, AWS ELB) or internal Kubernetes component.
+
+### 2. **Multiple Control Plane Nodes**
+- Ensures redundancy in case of a node failure.
+- Avoids single points of failure in the cluster.
+
+### 3. **Redundant etcd**
+- Stores the cluster state and configurations.
+- Running it in HA mode prevents data loss and ensures consistency.
+
+### 4. **Worker Nodes with kubelet**
+- Continue running workloads even if the control plane is temporarily unavailable.
+- Communicate with the API server through the load balancer.
+
+---
+
+## Conclusion
+High availability in Kubernetes is essential for ensuring resilience, reliability, and uptime in production environments. By implementing multiple control plane nodes, a load balancer, and a highly available `etcd` setup, organizations can mitigate risks and ensure smooth cluster operations.
+
+### Additional Considerations:
+- Use **node affinity and anti-affinity** rules to distribute workloads evenly.
+- Regularly **back up etcd** to prevent data loss.
+- Monitor control plane health using **Prometheus, Grafana, or Kubernetes metrics-server**.
+
+By following these best practices, you can build a fault-tolerant Kubernetes cluster ready for high-availability demands.
