@@ -296,4 +296,122 @@ Pod(s) with label: name=simple-webapp
 * To get endpoints: `kubectl get endpoints <svc>`
 * Create services with YAML and `kubectl apply -f`
 * Each endpoint = IP\:Port combo linked to the selected Pods
+* 
+
+# Namespaces, Quotas & Service DNS
+
+---
+
+## 🧭 Kubernetes Namespaces
+
+A **Namespace** is like a **folder** for your Kubernetes resources.
+
+---
+
+### ✅ Purpose
+
+* Organize resources (pods, services, etc.)
+* Isolate environments (e.g., `dev`, `test`, `prod`)
+* Enable multi-team or multi-tenant clusters
+* Apply resource limits and RBAC rules
+
+---
+
+### 📦 Default Namespaces
+
+* `default`: standard workspace
+* `kube-system`: core system components
+* `kube-public`: readable by all users
+* `kube-node-lease`: for node heartbeat tracking
+
+---
+
+### 🔧 Namespace Commands
+
+```bash
+kubectl get namespaces
+kubectl create namespace my-namespace
+kubectl delete namespace my-namespace
+kubectl get pods -n my-namespace
+
+# Accessing pods in specific namespaces
+kubectl get pods --namespace=dev
+kubectl get pods --namespace=prod
+kubectl get pods --namespace=default
+kubectl get pods
+kubectl get pods --all-namespaces
+
+# Change default namespace for the current context
+kubectl config set-context $(kubectl config current-context) --namespace=dev
+kubectl config set-context $(kubectl config current-context) --namespace=prod
+```
+
+Use `-n` or `--namespace` to target a specific namespace.
+
+---
+
+## 🧮 Kubernetes Resource Quota – Explained Simply
+
+A **ResourceQuota** restricts the total CPU, memory, and pod count usage **per namespace**.
+
+### 📌 Purpose
+
+* Prevent resource hogging
+* Enforce fair sharing
+* Ensure all teams declare resource limits in specs
+
+---
+
+### 🧱 ResourceQuota Example YAML
+
+```yaml
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: compute-quota       # Quota name
+  namespace: dev            # Applies to the 'dev' namespace
+spec:
+  hard:
+    pods: "10"              # Max 10 pods allowed
+    requests.cpu: "4"       # Total CPU requested ≤ 4 cores
+    requests.memory: 5Gi    # Total memory requested ≤ 5Gi
+    limits.cpu: "10"        # Max CPU limit set ≤ 10 cores
+    limits.memory: 10Gi     # Max memory limit set ≤ 10Gi
+```
+
+---
+
+### ✅ Apply the Quota
+
+```bash
+kubectl create -f compute-quota.yaml
+```
+
+### 🖼️ Quota Behavior Summary
+
+* Quotas apply at the namespace level
+* Resource usage across all nodes is aggregated per namespace
+* Nodes are not limited, just the namespace usage totals
+
+---
+
+## 🌐 Kubernetes Service DNS Access
+
+### 🔎 Question: What DNS name should the Blue app use to access the `db-service` in its own namespace `marketing`?
+
+### ✅ Answer:
+
+* **Short DNS** (within same namespace):
+
+  ```
+  db-service
+  ```
+* **Full DNS** (any namespace):
+
+  ```
+  db-service.marketing.svc.cluster.local
+  ```
+
+Use the short name when the client pod is in the **same namespace**.
+
 
