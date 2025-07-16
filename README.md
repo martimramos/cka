@@ -171,3 +171,129 @@ kubectl get pods -o wide
 * YAML definitions must have **correct selectors & labels**
 * Use `--dry-run=client -o yaml` to safely generate YAML before applying
 * Always match `selector.matchLabels` with `template.metadata.labels` in ReplicaSets
+
+---
+
+## 🔗 Kubernetes Services?
+
+A **Kubernetes Service** is a stable virtual IP (ClusterIP) that provides reliable access to a set of Pods, even if they come and go.
+
+---
+
+## 🧩 Service Types
+
+* **ClusterIP** (default): internal access only (inside the cluster)
+* **NodePort**: opens a specific port on all Nodes for external access
+* **LoadBalancer**: provisioned by cloud providers for external traffic
+* **ExternalName**: maps service to a DNS name outside the cluster
+
+---
+
+## 🎯 Why Services?
+
+* Load balance traffic across Pods using labels
+* Decouple access from Pod IPs (which change)
+* Enable stable discovery and communication
+
+---
+
+## 🧪 Inspecting Services
+
+```bash
+kubectl get services
+kubectl get service <name> -o yaml
+kubectl get endpoints <service-name>
+```
+
+### 🧾 Example Output (2 endpoints):
+
+```bash
+NAME         ENDPOINTS                        AGE
+kubernetes   172.17.0.2:6443,172.17.0.3:6443   25m
+```
+
+Each `IP:PORT` = 1 endpoint.
+
+---
+
+## 🛠️ Create a Service from File
+
+```bash
+kubectl apply -f service-definition-1.yaml
+```
+
+---
+
+## 🔧 Example: ClusterIP Service
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service
+spec:
+  selector:
+    app: myapp
+  ports:
+    - port: 80
+      targetPort: 8080
+  type: ClusterIP
+```
+
+This routes traffic from port 80 to port 8080 of Pods with label `app=myapp`.
+
+---
+
+## 🌐 Example: NodePort Service 
+
+```yaml
+apiVersion: v1               # API version used for the Service object
+kind: Service                # Resource type is a Service
+metadata:
+  name: webapp-service       # Name of the service
+  namespace: default         # Namespace where it will be created
+spec:
+  type: NodePort             # Exposes service on each Node's IP at a static port
+  selector:                  # Matches pods with this label
+    name: simple-webapp      # Targets pods with label name=simple-webapp
+  ports:
+    - port: 8080             # Port exposed by the service (inside the cluster)
+      targetPort: 8080       # Port on the container to forward to
+      nodePort: 30080        # External port on the node (for public access)
+```
+
+---
+
+## 🔄 NodePort Flow Diagram
+
+```markdown
+User (via browser or curl)
+        |
+        v
+NodeIP:30080  (nodePort)
+        |
+        v
+Service: webapp-service
+  - type: NodePort
+  - port: 8080
+        |
+        v
+Pod(s) with label: name=simple-webapp
+  - containerPort: 8080
+```
+
+### 🔄 Flow:
+
+* User accesses `http://<NodeIP>:30080`
+* NodePort forwards to Service `port: 8080`
+* Service forwards to `targetPort: 8080` on the matching Pods
+
+---
+
+## ✅ Quick Facts
+
+* Default service type is: `ClusterIP`
+* To get endpoints: `kubectl get endpoints <svc>`
+* Create services with YAML and `kubectl apply -f`
+* Each endpoint = IP\:Port combo linked to the selected Pods
+
