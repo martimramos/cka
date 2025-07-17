@@ -415,3 +415,224 @@ kubectl create -f compute-quota.yaml
 Use the short name when the client pod is in the **same namespace**.
 
 
+## 🆚 Imperative vs Declarative in Kubernetes
+
+### Imperative:
+
+* You tell Kubernetes *what to do now* using CLI.
+* Fast, direct, but not easily repeatable or versioned.
+
+### Declarative:
+
+* You describe the *desired state* in a YAML file.
+* Great for version control, automation, and repeatability.
+
+---
+
+## 🛠️ Common Imperative Commands
+
+```bash
+kubectl run nginx --image=nginx                           # Run a pod
+kubectl create deployment nginx --image=nginx             # Create a deployment
+kubectl expose deployment nginx --port=80                 # Expose service
+kubectl edit deployment nginx                             # Edit live object
+kubectl scale deployment nginx --replicas=5               # Scale replicas
+kubectl set image deployment nginx nginx=nginx:1.18       # Update image
+```
+
+---
+
+## 📄 Declarative YAML Usage
+
+```bash
+kubectl create -f nginx.yaml        # Create from YAML
+kubectl replace -f nginx.yaml       # Replace
+kubectl delete -f nginx.yaml        # Delete
+```
+
+### Example YAML (`nginx.yaml`):
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp-pod
+  labels:
+    app: myapp
+    type: front-end
+spec:
+  containers:
+  - name: nginx-container
+    image: nginx
+```
+
+---
+
+## 🔁 After Live Edit (example `kubectl edit` output)
+
+```yaml
+...
+spec:
+  containers:
+  - name: nginx-container
+    image: nginx:1.18
+...
+```
+
+---
+
+## ✅ Summary Table
+
+| Type        | Command Example               | Stored In    | Best For             |
+| ----------- | ----------------------------- | ------------ | -------------------- |
+| Imperative  | `kubectl run`, `kubectl edit` | In-memory    | Quick fixes, testing |
+| Declarative | `kubectl apply -f file.yaml`  | Source files | CI/CD, automation    |
+
+---
+
+## 🧠 Tips for YAML via CLI
+
+* Use `--dry-run=client -o yaml` to generate resource definitions without creating them:
+
+```bash
+kubectl run nginx --image=nginx --dry-run=client -o yaml > nginx.yaml
+```
+
+Modify and apply:
+
+```bash
+kubectl apply -f nginx.yaml
+```
+
+---
+
+## 🔧 Pod & Deployment Examples
+
+### Pod (Imperative)
+
+```bash
+kubectl run nginx --image=nginx
+```
+
+### Pod (YAML Generation)
+
+```bash
+kubectl run nginx --image=nginx --dry-run=client -o yaml
+```
+
+### Deployment (Imperative)
+
+```bash
+kubectl create deployment nginx --image=nginx
+kubectl scale deployment nginx --replicas=4
+```
+
+### Deployment (YAML to File)
+
+```bash
+kubectl create deployment nginx --image=nginx --dry-run=client -o yaml > nginx-deployment.yaml
+```
+
+---
+
+## 🔌 Services (Imperative & Declarative)
+
+### Create ClusterIP for Redis Pod
+
+```bash
+kubectl expose pod redis --port=6379 --name=redis-service --type=ClusterIP
+```
+
+### NodePort Example (exposing nginx)
+
+```bash
+kubectl expose pod nginx --type=NodePort --port=80 --name=nginx-service
+```
+
+> To specify a nodePort, generate the YAML first, then edit:
+
+```bash
+kubectl expose pod nginx --type=NodePort --port=80 --dry-run=client -o yaml > svc.yaml
+```
+
+Add:
+
+```yaml
+nodePort: 30080
+```
+
+Then:
+
+```bash
+kubectl apply -f svc.yaml
+```
+
+---
+
+## 🔨 Quick Commands Recap
+
+### Create Pod
+
+```bash
+kubectl run nginx-pod --image=nginx:alpine
+```
+
+### Pod with Labels
+
+```bash
+kubectl run redis --image=redis:alpine --labels=tier=db
+```
+
+### Generate YAML & Edit Labels
+
+```bash
+kubectl run redis --image=redis:alpine --dry-run=client -o yaml > redis.yaml
+# edit file to add:
+# metadata.labels.tier: db
+kubectl apply -f redis.yaml
+```
+
+### Create Service from Pod
+
+```bash
+kubectl expose pod redis --name=redis-service --port=6379 --target-port=6379 --type=ClusterIP
+```
+
+### Create Deployment with Replicas
+
+```bash
+kubectl create deployment webapp --image=kodekloud/webapp-color --replicas=3
+```
+
+### Create Namespace
+
+```bash
+kubectl create namespace dev-ns
+```
+
+### Deployment in a Namespace
+
+```bash
+kubectl create deployment redis-deploy --image=redis --replicas=2 -n dev-ns
+```
+
+### Pod + Service in 2 Steps
+
+```bash
+kubectl run httpd --image=httpd:alpine --port=80
+kubectl expose pod httpd --port=80 --target-port=80 --name=httpd --type=ClusterIP
+```
+
+---
+
+## 📚 References
+
+* [Kubectl Official Docs](https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands)
+* [Kubectl Conventions](https://kubernetes.io/docs/reference/kubectl/conventions/)
+
+---
+
+Imperative is great for speed and experimentation. Declarative is essential for automation, consistency, and production-grade deployments.
+
+
+
