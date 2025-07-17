@@ -635,4 +635,116 @@ kubectl expose pod httpd --port=80 --target-port=80 --name=httpd --type=ClusterI
 Imperative is great for speed and experimentation. Declarative is essential for automation, consistency, and production-grade deployments.
 
 
+## ✅ Kubectl Apply – How it Works
+
+When you use `kubectl apply -f file.yaml`, Kubernetes performs a **3-way merge** between:
+
+1. **Your local file** – the new desired state (e.g. `nginx.yaml`)
+2. **Last-applied-configuration** – what you applied last time (stored as annotation in the live object)
+3. **Live object configuration** – the current state of the object in the cluster
+
+---
+
+### 📄 Local File (new intent)
+
+This is the YAML you apply:
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp-pod
+  labels:
+    app: myapp
+spec:
+  containers:
+  - name: nginx-container
+    image: nginx:1.19
+```
+
+---
+
+### 🔁 Last-Applied Configuration
+
+This is stored as an annotation in the live object under:
+
+```yaml
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: '{ ... json ... }'
+```
+
+This helps `kubectl` detect what changed between the last apply and the current YAML.
+
+---
+
+### 📦 Live Object Configuration
+
+This is what actually runs in the cluster. It may have been changed manually or by controllers:
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp-pod
+  labels:
+    app: myapp
+spec:
+  containers:
+  - name: nginx-container
+    image: nginx:1.19
+status:
+  conditions:
+  - type: Initialized
+    status: "True"
+```
+
+---
+
+### 🔄 Apply Process Summary
+
+1. Compare **your YAML** with the **last-applied-configuration**.
+2. Detect changes.
+3. Patch only the **differences** into the **live object**.
+4. Update the annotation with the new `last-applied-configuration`.
+
+---
+
+### 🧠 Why This Matters
+
+* Manual changes to the live object not reflected in YAML will be **overwritten**.
+* Always re-apply using updated YAMLs to ensure drift doesn't happen.
+* For safer updates: avoid editing live objects manually (e.g., with `kubectl edit`).
+
+---
+
+### ✅ Best Practices
+
+* Always use `kubectl apply` for declarative workflows.
+* Use `kubectl diff -f file.yaml` to preview changes.
+* If needed, use `kubectl replace` for full overwrite (not recommended for live apps).
+
+---
+
+### 📌 Command Summary
+
+```bash
+kubectl apply -f my.yaml               # Apply declarative config
+kubectl get pod myapp-pod -o yaml      # View live object
+kubectl annotate ...                   # View/edit annotations
+```
+
+---
+
+### 🧩 Tip: View Last Applied Config
+
+```bash
+kubectl get pod myapp-pod -o json | jq -r '.metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"]' | jq .
+```
+
+This will pretty-print the last-applied config from the annotation (in JSON).
+
+---
+
+By understanding the **3-way diff** and how `kubectl apply` works, you can safely manage your YAML-driven configurations with confidence. 💡
 
