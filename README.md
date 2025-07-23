@@ -748,3 +748,84 @@ This will pretty-print the last-applied config from the annotation (in JSON).
 
 By understanding the **3-way diff** and how `kubectl apply` works, you can safely manage your YAML-driven configurations with confidence. 💡
 
+## 🧪 Imperative Commands
+
+Imperative commands are direct `kubectl` commands used to create, update, or delete Kubernetes resources without YAML manifests. Great for quick testing and small tasks.
+
+---
+
+### 🔹 Create Pods
+```bash
+kubectl run <pod-name> --image=<image-name>
+# Example:
+kubectl run nginx-pod --image=nginx:alpine
+```
+
+### 🔹 Add Labels When Creating
+```bash
+kubectl run <pod-name> --image=<image-name> --labels=key=value
+# Example:
+kubectl run redis --image=redis:alpine --labels=tier=db
+```
+
+### 🔹 Create Services
+```bash
+kubectl expose pod <pod-name> --port=<port> --name=<service-name>
+# Example:
+kubectl expose pod redis --port=6379 --name=redis-service
+```
+
+### 🔹 Create Deployments
+```bash
+kubectl create deployment <name> --image=<image-name> --replicas=<n>
+# Example:
+kubectl create deployment webapp --image=kodekloud/webapp-color --replicas=3
+```
+
+### 🔹 Scale Deployments (if --replicas not accepted initially)
+```bash
+kubectl scale deployment <name> --replicas=<n>
+```
+
+### 🔹 Generate YAML Without Creating (Dry Run)
+```bash
+kubectl run <pod-name> --image=<image-name> --dry-run=client -o yaml > pod.yaml
+# Edit pod.yaml as needed, e.g., add containerPort, labels, etc.
+kubectl apply -f pod.yaml
+```
+
+### 🔹 Create Namespace
+```bash
+kubectl create namespace <namespace-name>
+# Example:
+kubectl create namespace dev-ns
+```
+
+### 🔹 Create Deployment in Specific Namespace
+```bash
+kubectl create deployment <name> --image=<image-name> --replicas=<n> -n <namespace>
+# Example:
+kubectl create deployment redis-deploy --image=redis --replicas=2 -n dev-ns
+```
+
+### 🔹 Verify Resources
+```bash
+kubectl get pods
+kubectl get svc
+kubectl get deployments
+kubectl get namespaces
+kubectl get pods -n <namespace>
+```
+
+### 🔹 Describe Resources
+```bash
+kubectl describe pod <pod-name>
+kubectl describe svc <service-name>
+```
+
+### 🔹 Delete Resources
+```bash
+kubectl delete pod <pod-name>
+kubectl delete deployment <name>
+kubectl delete svc <name>
+kubectl delete namespace <namespace-name>
