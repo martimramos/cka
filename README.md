@@ -926,3 +926,165 @@ kubectl get events --sort-by=.metadata.creationTimestamp  # View recent events
 
 ---
 
+## 🏷️ Labels, Selectors, and Annotations
+
+### 🆚 Labels vs Annotations (Conceptual)
+| Feature       | Labels                         | Annotations                     |
+|---------------|---------------------------------|----------------------------------|
+| Purpose       | Identify, group, and select    | Store arbitrary non-identifying metadata |
+| Queryable     | ✅ Yes (e.g. via `kubectl get`) | ❌ No
+| Used by       | Selectors (e.g. Services, RS)  | Internal tools, clients, audits
+
+---
+
+### 🧱 Labels in Kubernetes
+- Key-value pairs attached to objects (pods, nodes, etc.)
+- Used to **organize**, **filter**, and **select** resources
+
+```yaml
+metadata:
+  labels:
+    app: myapp
+    role: frontend
+```
+
+Attach labels to Pods, Deployments, ReplicaSets, etc.
+
+---
+
+### 🔍 Label Selectors
+Used to **select resources** matching specific labels.
+
+Examples:
+```bash
+kubectl get pods --selector app=myapp
+kubectl get pods -l app=myapp,role=frontend
+```
+
+---
+
+### 🔁 ReplicaSet Labels vs Pod Labels
+**ReplicaSet:**
+- Has its own `labels:` (for metadata)
+- Uses `selector.matchLabels:` to match pods
+
+**Pods (template):**
+- Labels under `template.metadata.labels` must **match** the selector of the ReplicaSet
+
+```yaml
+# replicaset-example.yaml
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: rs-webapp
+  labels:
+    app: webapp
+    role: frontend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: webapp
+  template:
+    metadata:
+      labels:
+        app: webapp         # Must match selector
+        role: frontend
+    spec:
+      containers:
+        - name: webserver
+          image: nginx
+```
+
+---
+
+### 📝 Annotations
+- Attach arbitrary metadata to objects
+- Not used for selectors or grouping
+
+```yaml
+metadata:
+  annotations:
+    release.version: "v2.1"
+```
+
+Useful for:
+- Build info
+- Tooling metadata
+- Documentation
+
+---
+
+### 🔎 Label-based Filtering Examples
+
+Count all pods in the `dev` environment:
+```bash
+kubectl get pods -l env=dev --no-headers | wc -l
+```
+
+Count all pods in the `finance` business unit:
+```bash
+kubectl get pods -l bu=finance --no-headers | wc -l
+```
+
+Count all objects in the `prod` environment:
+```bash
+kubectl get all -A -l env=prod --no-headers | wc -l
+```
+
+Find pod in `prod` environment, `finance` BU, `frontend` role:
+```bash
+kubectl get pods -l env=prod,bu=finance,role=frontend
+```
+
+---
+
+### 🛠️ ReplicaSet Label Mismatch Fix Example
+
+Original (incorrect):
+```yaml
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: rs-broken
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      role: api
+  template:
+    metadata:
+      labels:
+        role: db  # ❌ does not match selector
+```
+
+Fixed version:
+```yaml
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: rs-fixed
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      role: api
+  template:
+    metadata:
+      labels:
+        role: api  # ✅ matches selector
+    spec:
+      containers:
+        - name: backend
+          image: httpd
+```
+
+```bash
+kubectl apply -f rs-fixed.yaml
+kubectl get rs
+kubectl get pods -l role=api
+```
+
+---
+
+
