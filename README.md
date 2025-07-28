@@ -829,3 +829,100 @@ kubectl delete pod <pod-name>
 kubectl delete deployment <name>
 kubectl delete svc <name>
 kubectl delete namespace <namespace-name>
+
+
+
+## 🧭 Scheduling (CKA Cheatsheet)
+
+This section covers Kubernetes pod scheduling essentials, especially useful for CKA exam scenarios.
+
+---
+
+### 🔍 Investigating Pending Pods
+
+```bash
+kubectl describe pod <pod-name>
+```
+- Check for `Node: <none>` → unscheduled
+- Look for events at the bottom (taints, no resources, etc.)
+
+```bash
+kubectl get nodes
+kubectl describe node <node-name>
+```
+- Confirm node readiness and check for taints
+
+```bash
+kubectl get pods -n kube-system
+```
+- Ensure all control plane components (especially `kube-scheduler`) are running
+
+---
+
+### ❌ Pod in Pending: Common Causes
+
+- 🚫 **Missing scheduler** → `kube-scheduler` not running
+- 🚫 **Taints** on nodes → no matching tolerations
+- 🚫 **No nodes available** → all unschedulable
+- 🚫 **Resource requests too high** → can't fit on any node
+- ⚠️ **NodeSelector/Affinity mismatch**
+
+---
+
+### ✅ Manual Scheduling with `nodeName`
+
+1. **Assign pod to a specific node**:
+
+```yaml
+spec:
+  nodeName: node01
+```
+
+2. **Apply YAML**:
+```bash
+kubectl apply -f nginx.yaml
+```
+
+3. **Check placement**:
+```bash
+kubectl get pods -o wide
+```
+
+---
+
+### ⚙️ Scheduling on a Tainted Node
+
+To schedule on the control-plane node (typically tainted with `NoSchedule`):
+
+```yaml
+spec:
+  nodeName: controlplane
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
+```
+
+Apply and verify:
+```bash
+kubectl delete pod nginx
+kubectl apply -f nginx.yaml
+kubectl get pods -o wide
+```
+
+---
+
+### 🧪 Extra Useful Commands
+
+```bash
+kubectl get pods -A                     # All namespaces
+kubectl describe node <node>           # See taints, allocatable resources
+kubectl get events --sort-by=.metadata.creationTimestamp  # View recent events
+```
+
+---
+
+✅ **Tip for exam**: If a pod is `Pending` with no events, check if the scheduler is even running.
+
+---
+
